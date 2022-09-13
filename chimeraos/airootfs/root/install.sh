@@ -28,16 +28,20 @@ if ! frzr-bootstrap gamer; then
     exit 1
 fi
 
-#### Post install steps for system configuration
-# Copy over all network configuration from the live session to the system
 MOUNT_PATH=/tmp/frzr_root
-SYS_CONN_DIR="/etc/NetworkManager/system-connections"
-if [ -d ${SYS_CONN_DIR} ] && [ -n "$(ls -A ${SYS_CONN_DIR})" ]; then
-    mkdir -p -m=700 ${MOUNT_PATH}${SYS_CONN_DIR}
-    cp  ${SYS_CONN_DIR}/* \
-        ${MOUNT_PATH}${SYS_CONN_DIR}/.
-fi
 
+CHOICE=$(whiptail --menu "Welcome to the ChimeraOS installer!" 18 50 10 \
+  "Install ChimeraOS" "" \
+  "Advanced Options" "" \
+   3>&1 1>&2 2>&3)
+   
+   if [ "${CHOICE}" == "Advanced Options" ]; then
+      BRANCH=$(whiptail --menu "Select the target channel" 18 50 10 \
+  "stable" "" \
+  "unstable" "" \
+  "testing" "" \
+   3>&1 1>&2 2>&3)
+   
 # Let the user set what session they would like to use
 SESSION=$(whiptail --menu "Default session select" 18 50 10 \
  "bigpicture" "Bigpicture mode" \
@@ -60,9 +64,22 @@ fi
 if [ ${SESSION} == "desktop" ]; then
   echo -e "[Seat:*]\nautologin-session=gnome" > ${MOUNT_PATH}/${LIGHTDM_CONFIG_DIR}/${LIGHTDM_CONFIG}
 fi
+   else
+      BRANCH="stable"
+   fi
+   
+#### Post install steps for system configuration
+# Copy over all network configuration from the live session to the system
+
+SYS_CONN_DIR="/etc/NetworkManager/system-connections"
+if [ -d ${SYS_CONN_DIR} ] && [ -n "$(ls -A ${SYS_CONN_DIR})" ]; then
+    mkdir -p -m=700 ${MOUNT_PATH}${SYS_CONN_DIR}
+    cp  ${SYS_CONN_DIR}/* \
+        ${MOUNT_PATH}${SYS_CONN_DIR}/.
+fi
 
 export SHOW_UI=1
-frzr-deploy chimeraos/chimeraos:stable
+frzr-deploy chimeraos/chimeraos:${BRANCH}
 RESULT=$?
 
 MSG="Installation failed."
