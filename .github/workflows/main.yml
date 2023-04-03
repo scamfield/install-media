@@ -2,7 +2,7 @@ name: Installer ISO build
 on:
   push:
     branches:
-    - 'master'
+    - 'pinned_v39'
 jobs:
   build:
     name: Installer ISO build
